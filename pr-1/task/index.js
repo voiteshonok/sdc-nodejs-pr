@@ -1,81 +1,32 @@
 // Student Management System
 
-class Student {
-  /**
-   * @param {string} id
-   * @param {stirng} name
-   * @param {number} age
-   * @param {string} group
-   */
-  constructor(id, name, age, group) {
-    this.id = id;
-    this.name = name;
-    this.age = age;
-    this.group = group;
-  }
-}
+const { getLogger } = require('./Logger');
+const { StudentsStorage } = require('./StudentsStorage');
+const { loadJSON, saveToJSON } = require('./utils');
 
-const students = [
-  new Student("1", "John Doe", 20, 2),
-  new Student("2", "Jane Smith", 23, 3),
-  new Student("3", "Mike Johnson", 18, 2),
-];
 
-function addStudent(name, age, grade) {
-  throw new Error("Method is not yet implemented");
-}
+const args = process.argv.slice(2);
 
-function removeStudent(id) {
-  throw new Error("Method is not yet implemented");
-}
+const isVerbose = args.includes("--verbose");
+const isQuiet = args.includes("--quiet");
 
-function getStudentById(id) {
-  throw new Error("Method is not yet implemented");
-}
+const logger = getLogger(isVerbose, isQuiet);
 
-function getStudentsByGroup(group) {
-  throw new Error("Method is not yet implemented");
-}
+const studentsStorage = new StudentsStorage();
+logger.log(studentsStorage.getAllStudents());
+studentsStorage.addStudent('new', 23, 'new');
 
-function getAllStudents() {
-  throw new Error("Method is not yet implemented");
-}
+logger.log(studentsStorage.getStudentsByGroup(2));
 
-function calculateAverageAge() {
-  throw new Error("Method is not yet implemented");
-}
+saveToJSON(studentsStorage.getAllStudents(), './students.json');
 
-class Logger {
-  #isVerboseModeEnabled = false;
-  #isQuietModeEnabled = false;
+logger.log(studentsStorage.calculateAverageAge());
+logger.log(studentsStorage.getStudentById('5'));
 
-  constructor(verbose = false, quiet = false) {
-    this.#isVerboseModeEnabled = verbose;
-    this.#isQuietModeEnabled = quiet;
-  }
+const newStudents = loadJSON('./students.json');
+logger.log(newStudents);
 
-  /**
-   * TODO: Implement the log method
-   *
-   * If "verbose" flag is set: log the message + log additional system data from the os module
-   * If "quiet" flag is set: suppress the logging output
-   *
-   *  Example system data to log:
-   * - Current timestamp
-   * - Operating system platform
-   * - Total memory
-   * - Free memory
-   * - CPU model
-   */
-  log(...data) {
-    console.log(...data);
-  }
-}
+studentsStorage.removeStudent('4');
+logger.log(studentsStorage.getAllStudents());
 
-function saveToJSON(data, filePath) {
-  throw new Error("Method is not yet implemented");
-}
 
-function loadJSON(filePath) {
-  throw new Error("Method is not yet implemented");
-}
