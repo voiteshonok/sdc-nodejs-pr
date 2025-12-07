@@ -1,0 +1,14 @@
+{
+  "name": "pr-3",
+  "version": "1.0.0",
+  "description": "From this moment you will start working with HTTP servers and will create your own API to work with Students Management System.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

@@ -107,6 +107,15 @@ class Backup extends EventEmitter {
       this.emit(BACKUP_EVENTS.NOT_RUNNING);
     }
   }
+
+  getStatus() {
+    return {
+      running: this.interval !== null,
+      isPending: this.isPending,
+      consecutiveSkips: this.consecutiveSkips,
+      backupDir: this.backupDir
+    };
+  }
 }
 
 module.exports = { Backup };
