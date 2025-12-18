@@ -79,7 +79,7 @@ class Backup extends EventEmitter {
       this.isPending = true;
 
       try {
-        const students = getStudentsFn();
+        const students = await getStudentsFn();
         await this.saveBackup(students);
       } catch (err) {
         // Emit error event instead of logging

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .add-student-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .add-student-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-buttons button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .edit-form {
+            display: none;
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .edit-form.active {
+            display: block;
+        }
+
+        .edit-form input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: calc(25% - 10px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Students Management System</h1>
+
+        <div id="message" class="message"></div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="fetchStudents()">🔄 Get All Students</button>
+        </div>
+
+        <div class="add-student-section">
+            <h2>➕ Add New Student</h2>
+            <p style="margin-bottom: 10px; color: #666; font-size: 14px;">
+                Enter student data in JSON format: <code>{"name": "John Doe", "age": 20, "group": 2}</code>
+            </p>
+            <textarea id="studentJson" rows="3" placeholder='{"name": "John Doe", "age": 20, "group": 2}'></textarea>
+            <button class="btn-primary" onclick="addStudent()">Add Student</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">Loading...</div>
+
+        <table id="studentsTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Group</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/students';
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.className = 'message';
+            }, 5000);
+        }
+
+        async function fetchStudents() {
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('studentsTable');
+            
+            loading.style.display = 'block';
+            table.style.display = 'none';
+
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const students = await response.json();
+                
+                renderStudents(students);
+                showMessage(`Successfully loaded ${students.length} students`, 'success');
+            } catch (error) {
+                showMessage(`Error fetching students: ${error.message}`, 'error');
+                console.error('Error:', error);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function renderStudents(students) {
+            const tbody = document.getElementById('studentsTableBody');
+            const table = document.getElementById('studentsTable');
+            
+            tbody.innerHTML = '';
+
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No students found</td></tr>';
+            } else {
+                students.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.id = `student-${student.id}`;
+                    
+                    row.innerHTML = `
+                        <td>${student.id}</td>
+                        <td>${student.name}</td>
+                        <td>${student.age}</td>
+                        <td>${student.group}</td>
+                        <td class="action-buttons">
+                            <button class="btn-warning" onclick="editStudent('${student.id}', '${student.name}', ${student.age}, ${student.group})">✏️ Edit</button>
+                            <button class="btn-danger" onclick="deleteStudent('${student.id}')">🗑️ Delete</button>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            }
+
+            table.style.display = 'table';
+        }
+
+        async function addStudent() {
+            const jsonInput = document.getElementById('studentJson').value.trim();
+            
+            if (!jsonInput) {
+                showMessage('Please enter student data in JSON format', 'error');
+                return;
+            }
+
+            try {
+                const studentData = JSON.parse(jsonInput);
+                
+                if (!studentData.name || studentData.age === undefined || studentData.group === undefined) {
+                    showMessage('Student data must include: name, age, and group', 'error');
+                    return;
+                }
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(studentData)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json().catch(() => ({}));
+                    const backendMsg =
+                        (Array.isArray(errorBody.errors) && errorBody.errors.join(', ')) ||
+                        errorBody.error;
+                    throw new Error(backendMsg || 'Failed to add student');
+                }
+
+                document.getElementById('studentJson').value = '';
+                showMessage('Student added successfully!', 'success');
+                await fetchStudents(); // Refresh the table
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showMessage('Invalid JSON format. Please check your input', 'error');
+                } else {
+                    showMessage(`Error adding student: ${error.message}`, 'error');
+                }
+                console.error('Error:', error);
+            }
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm(`Are you sure you want to delete student with ID ${id}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete student');
+                }
+
+                showMessage('Student deleted successfully!', 'success');
+                await fetchStudents(); // Refresh the table
+            } catch (error) {
+                showMessage(`Error deleting student: ${error.message}`, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function editStudent(id, name, age, group) {
+            const row = document.getElementById(`student-${id}`);
+            let editForm = row.querySelector('.edit-form');
+
+            if (editForm) {
+                // Toggle edit form
+                editForm.classList.toggle('active');
+                return;
+            }
+
+            // Create edit form
+            editForm = document.createElement('div');
+            editForm.className = 'edit-form active';
+            editForm.innerHTML = `
+                <input type="text" id="edit-name-${id}" value="${name}" placeholder="Name">
+                <input type="number" id="edit-age-${id}" value="${age}" placeholder="Age">
+                <input type="number" id="edit-group-${id}" value="${group}" placeholder="Group">
+                <button class="btn-primary" onclick="updateStudent('${id}')">💾 Save</button>
+                <button class="btn-danger" onclick="cancelEdit('${id}')">❌ Cancel</button>
+            `;
+
+            const actionsCell = row.querySelector('.action-buttons').parentElement;
+            const newRow = document.createElement('tr');
+            newRow.appendChild(document.createElement('td'));
+            newRow.appendChild(document.createElement('td'));
+            newRow.appendChild(document.createElement('td'));
+            newRow.appendChild(document.createElement('td'));
+            const td = document.createElement('td');
+            td.colSpan = 5;
+            td.appendChild(editForm);
+            newRow.appendChild(td);
+            
+            row.parentNode.insertBefore(newRow, row.nextSibling);
+        }
+
+        function cancelEdit(id) {
+            const row = document.getElementById(`student-${id}`);
+            const nextRow = row.nextSibling;
+            if (nextRow && nextRow.querySelector('.edit-form')) {
+                nextRow.remove();
+            }
+        }
+
+        async function updateStudent(id) {
+            const name = document.getElementById(`edit-name-${id}`).value;
+            const age = parseInt(document.getElementById(`edit-age-${id}`).value);
+            const group = parseInt(document.getElementById(`edit-group-${id}`).value);
+
+            if (!name || isNaN(age) || isNaN(group)) {
+                showMessage('Please fill in all fields correctly', 'error');
+                return;
+            }
+
+                try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, age, group })
+                });
+
+                if (!response.ok) {
+                        const errorBody = await response.json().catch(() => ({}));
+                        const backendMsg =
+                            (Array.isArray(errorBody.errors) && errorBody.errors.join(', ')) ||
+                            errorBody.error;
+                        throw new Error(backendMsg || 'Failed to update student');
+                }
+
+                showMessage('Student updated successfully!', 'success');
+                cancelEdit(id);
+                await fetchStudents(); // Refresh the table
+            } catch (error) {
+                showMessage(`Error updating student: ${error.message}`, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Auto-fetch students on page load
+        window.addEventListener('load', () => {
+            fetchStudents();
+        });
+    </script>
+</body>
+</html>
+
