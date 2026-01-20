@@ -9,3 +9,5 @@
 
 *.bru
 .sequelizerc
+
+**/coverage/

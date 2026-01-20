@@ -1,4 +1,4 @@
-# Students Management System - Assignment 5
+# Students Management System - Assignment 6/7
 
 A full-stack web application for managing students with authentication, role-based access control, and grade tracking.
 
@@ -24,7 +24,7 @@ A full-stack web application for managing students with authentication, role-bas
 ## Project Structure
 
 ```
-pr-5/
+pr-6/
 ├── config/
 │   └── database.js          # Database configuration
 ├── migrations/              # Database migrations
@@ -70,10 +70,10 @@ pr-5/
 
 ### 1. Install Dependencies
 
-From the `pr-5` directory:
+From the `pr-6` directory:
 
 ```bash
-cd pr-5
+cd pr-6
 npm install
 ```
 
@@ -266,6 +266,48 @@ NODE_ENV=development
 - ✅ Protected endpoints with middleware
 - ✅ Input validation with Joi
 - ✅ SQL injection protection (via Sequelize ORM)
+- ✅ Response compression (gzip) for improved performance
+
+## Response Compression
+
+The server uses **compression middleware** to automatically compress HTTP responses, reducing bandwidth usage and improving performance.
+
+### How It Works
+
+- **Automatic compression**: All text-based responses (JSON, HTML, CSS, JavaScript) are automatically compressed using gzip
+- **Client negotiation**: Compression is enabled when clients send `Accept-Encoding: gzip` header
+- **Performance benefit**: Typically reduces response size by 60-80%
+
+### Verifying Compression
+
+#### Using Browser DevTools
+
+1. Open DevTools (F12)
+2. Go to **Network** tab
+3. Make any API request
+4. Click on the request
+5. Check **Response Headers** for:
+   - `Content-Encoding: gzip`
+   - Compare **Size** vs **Transferred** (transferred should be smaller)
+
+#### Using curl
+
+```bash
+# Request with compression
+curl -v -H "Accept-Encoding: gzip" http://localhost:3000/api/students \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  2>&1 | grep -i "content-encoding"
+
+# Output should show:
+# < content-encoding: gzip
+```
+
+### Compression Statistics
+
+Typical compression ratios:
+- **JSON responses**: 60-80% size reduction
+- **HTML pages**: 70-90% size reduction
+- **JavaScript/CSS**: 70-85% size reduction
 
 ## Troubleshooting
 
@@ -285,7 +327,7 @@ To completely reset the database:
 docker-compose down
 
 # Remove volume (deletes all data)
-docker volume rm pr-5_postgres_data
+docker volume rm pr-6_postgres_data
 
 # Start fresh
 docker-compose up -d
@@ -311,6 +353,7 @@ npm run db:migrate
 
 ### Project Dependencies
 
+**Production Dependencies:**
 - `express` - Web framework
 - `sequelize` - ORM for PostgreSQL
 - `sequelize-cli` - Database migrations
@@ -319,6 +362,16 @@ npm run db:migrate
 - `bcrypt` - Password hashing
 - `joi` - Input validation
 - `dotenv` - Environment variables
+- `compression` - HTTP response compression middleware
+- `express-status-monitor` - Real-time server monitoring dashboard
+- `swagger-jsdoc` - Swagger/OpenAPI documentation
+- `swagger-ui-express` - Interactive API documentation UI
+- `winston` - Logging library
+
+**Development Dependencies:**
+- `jest` - Testing framework
+- `@jest/globals` - Jest globals
+- `supertest` - HTTP assertion library for integration testing
 
 ### Code Structure
 
@@ -352,8 +405,10 @@ npm run test:coverage
 ### Test Structure
 
 - `tests/src/services/` - Unit tests for service classes (e.g., `UserService`)
-- `tests/src/auth/` - Unit tests for authentication controllers
+- `tests/src/auth/` - Unit tests for authentication controllers and role utilities
 - `tests/src/utils/` - Unit tests for utility classes (e.g., `StudentValidator`)
+- `tests/integration/` - Integration tests for API endpoints (using supertest)
+- `tests/setup/` - Test setup utilities (database configuration)
 
 ### Test Coverage
 
@@ -361,8 +416,33 @@ The test suite covers:
 - **AuthController** - Login and registration logic
 - **UserService** - User database operations and password verification
 - **StudentValidator** - Input validation for student data
+- **Roles** - Role-based permission functions
+- **Integration tests** - Full API endpoint testing with database
+
+### Integration Tests
+
+Integration tests use **supertest** to test API endpoints with a real database connection:
+
+```bash
+# Run integration tests
+npm test -- tests/integration/
+
+# Integration tests require test database setup
+NODE_ENV=test npm run db:setup
+```
+
+The test database (`students_db_test`) is automatically created if it doesn't exist when running tests.
+
+### Test Coverage
 
 Coverage reports are generated in the `coverage/` directory when running `npm run test:coverage`.
+
+The project maintains **≥80% code coverage** for core business logic:
+- Services (UserService)
+- Utilities (StudentValidator, roles)
+- Controllers (AuthController)
+
+Note: Coverage excludes infrastructure code (Express middleware, config files, database models) which is tested via integration tests.
 
 ## Logging
 
@@ -435,8 +515,9 @@ The application includes **Express Status Monitor** for real-time server resourc
 
 ### Accessing the Monitoring Dashboard
 
-Once the server is running, access the monitoring dashboard at:
+The monitoring dashboard is available at:
 - **URL**: `http://localhost:3000/status`
+- **Requirements**: Admin authentication required (see access methods below)
 
 ### Metrics Tracked
 
@@ -454,8 +535,38 @@ Once the server is running, access the monitoring dashboard at:
 - **Real-time updates**: Dashboard updates automatically via WebSocket
 - **Historical data**: Multiple time spans (1s, 5s, 15s intervals)
 - **Visual charts**: Easy-to-read graphs and metrics
-- **No authentication required**: Monitoring dashboard is publicly accessible
+- **Protected access**: Dashboard requires authentication and admin role
 
+### Accessing the Protected Monitoring Dashboard
+
+The `/status` endpoint is protected and requires:
+1. **Valid JWT token** (authentication)
+2. **Admin role** (authorization)
+
+#### Using Browser Developer Console
+
+1. Open browser DevTools (F12)
+2. Go to Console tab
+3. Run this script:
+   ```javascript
+   fetch('/api/auth/login', {
+     method: 'POST',
+     headers: {'Content-Type': 'application/json'},
+     body: JSON.stringify({
+       email: 'admin@school.com',
+       password: 'password123'
+     })
+   })
+   .then(r => r.json())
+   .then(data => {
+     if (data.success && data.user.role_name === 'admin') {
+       // Open in new tab with token
+       window.open(`/status?token=${data.token}`, '_blank');
+     } else {
+       console.error('Login failed or insufficient permissions');
+     }
+   });
+   ```
 ## License
 
 ISC

@@ -1,74 +1,60 @@
-# Assignment 6 - Testing, Logging, Monitoring, Swagger
+# Assignment 7 - Shaping your server application
 
 ## Tasks
 
-### Cover your application logic with unit tests
+### Enable analyzing of codebase test coverage
 
-Cover your server functionality with unit tests.
+Configure your test config (in case if you're using Jest or similar external libraries) so that it will analyze and report your percentage of test coverage of the whole codebase.
 
-Here what you can use:
+Coverage is mostly related to unit tests, so don't forget to configure your coverage with excluding parts which are related to functionality which will be covered in integration or e2e tests (like express endpoints, working with the real database or config files). Focus on your core logic: self-written services, utilities, components etc.
 
-- [Jest](https://jestjs.io/) (the most popular third-party testing library)
-  - [Getting Started](https://jestjs.io/docs/getting-started)
-- [Node.js test runner](https://nodejs.org/docs/latest/api/test.html#test-runner) (built-in solution)
-  - [Discovering Node.js's test runner](https://nodejs.org/en/learn/test-runner/introduction)
+Don't forget to mock third-party libraries and functionality which works with external resources. Make your unit tests as isolated as possible.
 
-### Cover your application with logging
+#### Useful Links
 
-In previous assignments you should have already implemented your custom `Logger` for general usage. Since your project has grown bigger and more complex, having better and more functional logging will make it easier for you to analyze errors and investigate bugs.
+- [Configuring Jest](https://jestjs.io/docs/configuration)
+- Jest Mocks
+  - [Mock Functions](https://jestjs.io/docs/mock-functions)
+  - [Jest Mocking Cheat Sheet](https://cemkarakurt.com/notes/jest-mocking/)
 
-`winston` is a logging library which you can integrate into a project. With it you will be able to transport logs into different destinations (local files, database or dedicated services for analyzing application metrics).
+### Implement integration tests
 
-It is expected that you will log different logging levels at least into different files:
+Use [supertest](https://www.npmjs.com/package/supertest) package to test your backend endpoints.
 
-- File with combined logs (everything including info, errors, fatal, debug, etc.).
-- File with error logs (only errors and fatal).
+#### Useful Links
 
-#### Implement environment-based logging
+- [Getting Started](https://github.com/forwardemail/supertest?tab=readme-ov-file#getting-started)
 
-Your application's logging should work at least in two modes based on value stored in `NODE_ENV` variable:
+### Compress server responses
 
-- `production` - should store your logs into different files
-- `development` - should just print everything into a `console` in a simple format
+Enable compression in Express using [compression](https://expressjs.com/en/resources/middleware/compression.html) middleware.
 
-### Integrate simple monitoring
+### Enable monitoring only for admins
 
-Integrate simple metrics collector of your system server resources that can be easily monitored on a web-page.
+In previous assignment you've already integrated system monitoring in your Express Server.
 
-You may use several options:
-
-- [Express Status Monitor](https://www.npmjs.com/package/express-status-monitor) - simple and easy to setup.
-- [Clinic.js Doctor](https://www.clinicjs.org/doctor/) - can be challenging to setup but it will reward you with useful metrics, warnings and recommendations.
-
-It is ok to use one of them or either to bring some other existing solution into your project. Don't forget that it should visually display common metrics (CPU usage, RAM, requests/responses, etc.)
-
-### Integrate Swagger
-
-You need to follow up your API with documentation that serves as a source of truth for anyone who will work with your API later.
-
-The most common option is to use [Swagger](https://swagger.io/).
-
-Since you're using Express framework you can use this npm library:
-
-- [swagger-ui-express](https://www.npmjs.com/package/swagger-ui-express)
+Protect your page so that only `admin` or `moderator` can view these metrics.
 
 ## Evaluation criteria
 
-- **Unit Tests**
-  - **2 pts** - Core functionality is covered with unit tests.
-    - **1 pts** - Unit tests are written but core functionality is covered partially.
+- **Test Coverage**
+  - **2 pts** - Core logic coverage is ≥80%.
+    - **2 pts** - Core logic coverage is <80%.
     - **0 pts** - Tests are missing or broken.
-- **Logging**
-  - **2 pts** - Your core functionality is fully logged with different levels of severity. Logs are written into the different files. Environment-based logging is supported.
-    - **1 pts** - Logging works but it there is lack of utilization of severity levels. Some of the required functionality is missing.
-    - **0 pts** - Logging is missing or the initial logger from previous assignments remains untouched.
-- **Metrics**
-  - **2 pts** - Activity of a running server can be monitored.
+- **Integration tests**
+  - **2 pts** - All endpoints are covered with integration tests.
+    - **2 pts** - Integration tests are implemented but without full coverage and/or has some issues.
+    - **0 pts** - Integration tests are missing or broken.
+- **Response Compression**
+  - **2 pts** - Compression is enabled. Decreased size of the response can be observed.
     - **0 pts** - Missing or broken.
-- **Swagger**
-  - **4 pts** - Swagger is integrated into your application. It supports UI and can be easily viewed as the web-page.
-    - **2 pts** - Swagger is integrated but with issues.
+- **System monitoring for admins only**
+  - **2 pts** - System monitoring page can only viewed by users who have admin or moderator role.
     - **0 pts** - Missing or broken.
+- **Code Stability & Structure**
+  - **2 pts** - Clean, modular, stable and easy to follow.
+    - **1 pt** - Acceptable but has inconsistencies.
+    - **0 pts** - Disorganized and confusing.
 
 ### Penalties
 

@@ -20,9 +20,14 @@ const authMiddleware = authenticateToken(jwtSecret);
 
 const express = require('express')
 const path = require('path')
+const compression = require('compression')
 const swaggerUi = require('swagger-ui-express')
 const swaggerJsdoc = require('swagger-jsdoc')
 const app = express()
+
+// Enable compression middleware - compress all responses
+app.use(compression())
+
 app.use(express.json())
 
 // Swagger configuration
@@ -62,9 +67,10 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Express Status Monitor - must be added before routes
+// Express Status Monitor - protected for admins only
+// Apply authentication and admin role check before the status monitor
 const expressStatusMonitor = require('express-status-monitor');
-app.use(expressStatusMonitor({
+const statusMonitorConfig = {
     title: 'Server Status Monitor',
     path: '/status',
     spans: [{
@@ -88,7 +94,11 @@ app.use(expressStatusMonitor({
         statusCodes: true
     },
     healthChecks: []
-}));
+};
+
+// Protect /status endpoint - require authentication and admin role
+app.use('/status', authMiddleware, requireAdmin);
+app.use(expressStatusMonitor(statusMonitorConfig));
 
 // Serve static files from frontend directory
 app.use(express.static(path.join(__dirname, 'frontend')))
@@ -762,24 +772,27 @@ app.post('/api/backup/stop', (req, res) => {
     }
 })
 
-app.listen(port, async () => {
-    logger.info(`Server started - listening on port ${port}`)
-    logger.info(`Server monitoring dashboard available at http://localhost:${port}/status`)
-    logger.info(`API documentation available at http://localhost:${port}/api-docs`)
-    
-    // Print all users on startup
-    try {
-        const users = await userService.getAllUsers();
-        logger.info('\n=== All Users ===');
-        logger.info(`Total users: ${users.length}\n`);
-        users.forEach(user => {
-            logger.debug(`ID: ${user.id} | Name: ${user.name} ${user.surname} | Email: ${user.email} | Role: ${user.role_name}`);
-        });
-        logger.info('================\n');
-    } catch (error) {
-        logger.error('Error fetching users on startup:', error.message);
-    }
-})
+// Only start server if this file is run directly
+if (require.main === module) {
+  app.listen(port, async () => {
+      logger.info(`Server started - listening on port ${port}`)
+      logger.info(`Server monitoring dashboard available at http://localhost:${port}/status`)
+      logger.info(`API documentation available at http://localhost:${port}/api-docs`)
+      
+      // Print all users on startup
+      try {
+          const users = await userService.getAllUsers();
+          logger.info('\n=== All Users ===');
+          logger.info(`Total users: ${users.length}\n`);
+          users.forEach(user => {
+              logger.debug(`ID: ${user.id} | Name: ${user.name} ${user.surname} | Email: ${user.email} | Role: ${user.role_name}`);
+          });
+          logger.info('================\n');
+      } catch (error) {
+          logger.error('Error fetching users on startup:', error.message);
+      }
+  })
+}
 
 
 function setupStudentStorageEvents(studentsStorage) {
@@ -864,3 +877,6 @@ setupStudentStorageEvents(userService);
 setupBackupEvents(backup);
 
 // backup.start(() => studentsStorage.getAllStudents());
+
+// Export app for testing
+module.exports = app;

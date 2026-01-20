@@ -367,5 +367,329 @@ describe('UserService', () => {
       });
     });
   });
+
+  describe('getAllUsers', () => {
+    it('should return all users with role names', async () => {
+      // Arrange
+      const mockUsers = [
+        { id: 1, name: 'John', surname: 'Doe', email: 'john@example.com', role: 1 },
+        { id: 2, name: 'Jane', surname: 'Smith', email: 'jane@example.com', role: 2 }
+      ];
+
+      const mockRole1 = { role_id: 1, role_name: 'student' };
+      const mockRole2 = { role_id: 2, role_name: 'teacher' };
+
+      mockUser.findAll = jest.fn().mockResolvedValue(mockUsers);
+      mockRole.findOne
+        .mockResolvedValueOnce(mockRole1)
+        .mockResolvedValueOnce(mockRole2);
+
+      // Act
+      const result = await userService.getAllUsers();
+
+      // Assert
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        id: 1,
+        name: 'John',
+        surname: 'Doe',
+        email: 'john@example.com',
+        role: 1,
+        role_name: 'student'
+      });
+      expect(result[1]).toEqual({
+        id: 2,
+        name: 'Jane',
+        surname: 'Smith',
+        email: 'jane@example.com',
+        role: 2,
+        role_name: 'teacher'
+      });
+      expect(mockUser.findAll).toHaveBeenCalledWith({
+        order: [['id', 'ASC']],
+        raw: true
+      });
+      expect(mockSequelize.authenticate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no users exist', async () => {
+      // Arrange
+      mockUser.findAll = jest.fn().mockResolvedValue([]);
+
+      // Act
+      const result = await userService.getAllUsers();
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(mockUser.findAll).toHaveBeenCalled();
+      expect(mockRole.findOne).not.toHaveBeenCalled();
+    });
+
+    it('should call ensureConnected before querying', async () => {
+      // Arrange
+      mockUser.findAll = jest.fn().mockResolvedValue([]);
+
+      // Act
+      await userService.getAllUsers();
+
+      // Assert
+      expect(mockSequelize.authenticate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getRoleNameByRoleId', () => {
+    it('should return role name when role exists', async () => {
+      // Arrange
+      const roleId = 1;
+      const mockRoleData = { role_id: 1, role_name: 'student' };
+      mockRole.findOne.mockResolvedValue(mockRoleData);
+
+      // Act
+      const result = await userService.getRoleNameByRoleId(roleId);
+
+      // Assert
+      expect(result).toBe('student');
+      expect(mockRole.findOne).toHaveBeenCalledWith({
+        where: { role_id: roleId },
+        raw: true
+      });
+      expect(mockSequelize.authenticate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return null when role does not exist', async () => {
+      // Arrange
+      const roleId = 999;
+      mockRole.findOne.mockResolvedValue(null);
+
+      // Act
+      const result = await userService.getRoleNameByRoleId(roleId);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockRole.findOne).toHaveBeenCalledWith({
+        where: { role_id: roleId },
+        raw: true
+      });
+    });
+  });
+
+  describe('Student operations', () => {
+    let mockStudent;
+
+    beforeEach(() => {
+      mockStudent = {
+        findAll: jest.fn(),
+        findByPk: jest.fn(),
+        create: jest.fn(),
+      };
+      mockDb.Student = mockStudent;
+      userService = new UserService(mockDb);
+    });
+
+    describe('getAllStudents', () => {
+      it('should return all students', async () => {
+        // Arrange
+        const mockStudents = [
+          { id: 1, name: 'Student 1', age: 20, group: 1 },
+          { id: 2, name: 'Student 2', age: 21, group: 2 }
+        ];
+        mockStudent.findAll.mockResolvedValue(mockStudents);
+        const emitSpy = jest.spyOn(userService, 'emit');
+
+        // Act
+        const result = await userService.getAllStudents();
+
+        // Assert
+        expect(result).toEqual(mockStudents);
+        expect(mockStudent.findAll).toHaveBeenCalledWith({
+          order: [['id', 'ASC']],
+          raw: true
+        });
+        expect(mockSequelize.authenticate).toHaveBeenCalledTimes(1);
+        expect(emitSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('getStudentById', () => {
+      it('should return student when exists', async () => {
+        // Arrange
+        const studentId = 1;
+        const mockStudentData = { id: 1, name: 'Student 1', age: 20, group: 1 };
+        mockStudent.findByPk.mockResolvedValue(mockStudentData);
+        const emitSpy = jest.spyOn(userService, 'emit');
+
+        // Act
+        const result = await userService.getStudentById(studentId);
+
+        // Assert
+        expect(result).toEqual(mockStudentData);
+        expect(mockStudent.findByPk).toHaveBeenCalledWith(studentId, { raw: true });
+        expect(emitSpy).toHaveBeenCalled();
+      });
+
+      it('should return null when student does not exist', async () => {
+        // Arrange
+        const studentId = 999;
+        mockStudent.findByPk.mockResolvedValue(null);
+        const emitSpy = jest.spyOn(userService, 'emit');
+
+        // Act
+        const result = await userService.getStudentById(studentId);
+
+        // Assert
+        expect(result).toBeNull();
+        expect(emitSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('createStudent', () => {
+      it('should create student successfully', async () => {
+        // Arrange
+        const studentData = { name: 'New Student', age: 20, group: 1 };
+        const mockCreatedStudent = {
+          get: jest.fn().mockReturnValue({ id: 1, ...studentData })
+        };
+        mockStudent.create.mockResolvedValue(mockCreatedStudent);
+        const emitSpy = jest.spyOn(userService, 'emit');
+
+        // Act
+        const result = await userService.createStudent(studentData);
+
+        // Assert
+        expect(result).toEqual({ id: 1, ...studentData });
+        expect(mockStudent.create).toHaveBeenCalledWith(studentData, { returning: true });
+        expect(emitSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('updateStudent', () => {
+      it('should update student when exists', async () => {
+        // Arrange
+        const studentId = 1;
+        const updateData = { name: 'Updated Name', age: 21, group: 2 };
+        const mockStudentInstance = {
+          name: 'Old Name',
+          age: 20,
+          group: 1,
+          save: jest.fn().mockResolvedValue({
+            get: jest.fn().mockReturnValue({ id: studentId, ...updateData })
+          })
+        };
+        mockStudent.findByPk.mockResolvedValue(mockStudentInstance);
+
+        // Act
+        const result = await userService.updateStudent(studentId, updateData);
+
+        // Assert
+        expect(result).toEqual({ id: studentId, ...updateData });
+        expect(mockStudentInstance.name).toBe(updateData.name);
+        expect(mockStudentInstance.age).toBe(updateData.age);
+        expect(mockStudentInstance.group).toBe(updateData.group);
+        expect(mockStudentInstance.save).toHaveBeenCalled();
+      });
+
+      it('should return null when student does not exist', async () => {
+        // Arrange
+        const studentId = 999;
+        const updateData = { name: 'Updated Name', age: 21, group: 2 };
+        mockStudent.findByPk.mockResolvedValue(null);
+
+        // Act
+        const result = await userService.updateStudent(studentId, updateData);
+
+        // Assert
+        expect(result).toBeNull();
+        expect(mockStudent.findByPk).toHaveBeenCalledWith(studentId);
+      });
+    });
+
+    describe('deleteStudent', () => {
+      it('should delete student when exists', async () => {
+        // Arrange
+        const studentId = 1;
+        const mockStudentInstance = {
+          get: jest.fn().mockReturnValue({ id: studentId, name: 'Student 1', age: 20, group: 1 }),
+          destroy: jest.fn().mockResolvedValue(true)
+        };
+        mockStudent.findByPk.mockResolvedValue(mockStudentInstance);
+        const emitSpy = jest.spyOn(userService, 'emit');
+
+        // Act
+        const result = await userService.deleteStudent(studentId);
+
+        // Assert
+        expect(result).toEqual({ id: studentId, name: 'Student 1', age: 20, group: 1 });
+        expect(mockStudentInstance.destroy).toHaveBeenCalled();
+        expect(emitSpy).toHaveBeenCalled();
+      });
+
+      it('should return null and emit error when student does not exist', async () => {
+        // Arrange
+        const studentId = 999;
+        mockStudent.findByPk.mockResolvedValue(null);
+        const emitSpy = jest.spyOn(userService, 'emit');
+
+        // Act
+        const result = await userService.deleteStudent(studentId);
+
+        // Assert
+        expect(result).toBeNull();
+        expect(emitSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('getStudentsByGroup', () => {
+      it('should return students by group', async () => {
+        // Arrange
+        const group = 1;
+        const mockStudents = [
+          { id: 1, name: 'Student 1', age: 20, group: 1 },
+          { id: 2, name: 'Student 2', age: 21, group: 1 }
+        ];
+        mockStudent.findAll.mockResolvedValue(mockStudents);
+        const emitSpy = jest.spyOn(userService, 'emit');
+
+        // Act
+        const result = await userService.getStudentsByGroup(group);
+
+        // Assert
+        expect(result).toEqual(mockStudents);
+        expect(mockStudent.findAll).toHaveBeenCalledWith({
+          where: { group },
+          order: [['id', 'ASC']],
+          raw: true
+        });
+        expect(emitSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('calculateAverageAge', () => {
+      it('should calculate average age correctly', async () => {
+        // Arrange
+        const mockResult = [{ averageAge: '22.5' }];
+        mockStudent.findAll.mockResolvedValue(mockResult);
+        const emitSpy = jest.spyOn(userService, 'emit');
+        
+        // Mock sequelize.fn and sequelize.col
+        const mockFn = jest.fn((op, col) => ({ op, col }));
+        const mockCol = jest.fn((colName) => colName);
+        mockSequelize.fn = mockFn;
+        mockSequelize.col = mockCol;
+
+        // Act
+        const result = await userService.calculateAverageAge();
+
+        // Assert
+        expect(result).toBe(22); // Math.floor(22.5) = 22
+        expect(mockStudent.findAll).toHaveBeenCalledWith({
+          attributes: [
+            [mockFn('AVG', mockCol('age')), 'averageAge']
+          ],
+          raw: true
+        });
+        expect(emitSpy).toHaveBeenCalled();
+      });
+    });
+  });
 });
 
