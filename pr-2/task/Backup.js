@@ -79,7 +79,7 @@ class Backup extends EventEmitter {
       this.isPending = true;
 
       try {
-        const students = await getStudentsFn();
+        const students = getStudentsFn();
         await this.saveBackup(students);
       } catch (err) {
         // Emit error event instead of logging
@@ -106,15 +106,6 @@ class Backup extends EventEmitter {
       // Emit event instead of logging
       this.emit(BACKUP_EVENTS.NOT_RUNNING);
     }
-  }
-
-  getStatus() {
-    return {
-      running: this.interval !== null,
-      isPending: this.isPending,
-      consecutiveSkips: this.consecutiveSkips,
-      backupDir: this.backupDir
-    };
   }
 }
 
