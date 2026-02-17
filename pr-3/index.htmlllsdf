@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My CV - Portfolio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>John Doe</h1>
+            <p class="subtitle">Full Stack Developer</p>
+        </header>
+
+        <section class="contact">
+            <h2>Contact Information</h2>
+            <ul>
+                <li>📧 Email: john.doe@example.com</li>
+                <li>📱 Phone: +1 (555) 123-4567</li>
+                <li>🌐 LinkedIn: linkedin.com/in/johndoe</li>
+                <li>💻 GitHub: github.com/johndoe</li>
+                <li>📍 Location: San Francisco, CA</li>
+            </ul>
+        </section>
+
+        <section class="about">
+            <h2>About Me</h2>
+            <p>
+                Passionate full stack developer with 5+ years of experience building scalable web applications.
+                Specialized in Node.js, React, and cloud technologies. Strong problem-solving skills and
+                a commitment to writing clean, maintainable code.
+            </p>
+        </section>
+
+        <section class="experience">
+            <h2>Work Experience</h2>
+            <div class="job">
+                <h3>Senior Software Engineer</h3>
+                <p class="company">Tech Corp Inc. | 2021 - Present</p>
+                <ul>
+                    <li>Led development of microservices architecture serving 1M+ users</li>
+                    <li>Improved application performance by 40% through optimization</li>
+                    <li>Mentored junior developers and conducted code reviews</li>
+                </ul>
+            </div>
+            <div class="job">
+                <h3>Full Stack Developer</h3>
+                <p class="company">StartupXYZ | 2019 - 2021</p>
+                <ul>
+                    <li>Built RESTful APIs using Node.js and Express</li>
+                    <li>Developed responsive front-end using React and TypeScript</li>
+                    <li>Implemented CI/CD pipelines using Docker and Kubernetes</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="skills">
+            <h2>Technical Skills</h2>
+            <div class="skills-grid">
+                <div class="skill-category">
+                    <h3>Backend</h3>
+                    <ul>
+                        <li>Node.js</li>
+                        <li>Express.js</li>
+                        <li>Python</li>
+                        <li>PostgreSQL</li>
+                        <li>MongoDB</li>
+                    </ul>
+                </div>
+                <div class="skill-category">
+                    <h3>Frontend</h3>
+                    <ul>
+                        <li>React</li>
+                        <li>TypeScript</li>
+                        <li>HTML/CSS</li>
+                        <li>JavaScript</li>
+                        <li>Vue.js</li>
+                    </ul>
+                </div>
+                <div class="skill-category">
+                    <h3>Tools & Others</h3>
+                    <ul>
+                        <li>Git</li>
+                        <li>Docker</li>
+                        <li>AWS</li>
+                        <li>Kubernetes</li>
+                        <li>Linux</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="education">
+            <h2>Education</h2>
+            <div class="education-item">
+                <h3>Bachelor of Science in Computer Science</h3>
+                <p class="institution">University of Technology | 2015 - 2019</p>
+                <p>Graduated Magna Cum Laude</p>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2024 John Doe. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

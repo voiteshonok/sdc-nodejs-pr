@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Server with Streams - Test Page</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HTTP Server with Streams</h1>
+            <p>This page is served using Node.js streams!</p>
+        </header>
+        
+        <main>
+            <section class="info">
+                <h2>Server Information</h2>
+                <p>This HTTP server uses <code>fs.createReadStream</code> to pipe file content to the HTTP response.</p>
+                <p>All files are served from the <code>public</code> directory using streams for efficient memory usage.</p>
+            </section>
+            
+            <section class="test-section">
+                <h2>Test Files</h2>
+                <h2>Test Files</h2>
+                <ul>
+                    <li>✅ HTML file (this page)</li>
+                    <li>✅ CSS file (styles.css)</li>
+                    <li>✅ JavaScript file (script.js)</li>
+                </ul>
+            </section>
+            
+            <section class="interactive">
+                <h2>Interactive Test</h2>
+                <button id="testButton">Click Me!</button>
+                <p id="output"></p>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Server Status: <span id="status">Running</span></p>
+        </footer>
+    </div>
+    
+    <script src="/script.js"></script>
+</body>
+</html>
+

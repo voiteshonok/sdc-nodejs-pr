@@ -1,2 +1,14 @@
 **/students.json
+
 **/backups/
+**/logs/
+
+**/node_modules/
+**/package-lock.json
+**/.env
+**/.DS_Store
+
+*.bru
+.sequelizerc
+
+**/coverage/
